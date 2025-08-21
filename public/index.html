@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <title>Snapdrop Clone</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; margin: 40px; }
+    #devices { margin: 20px; }
+    button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>📂 Snapdrop Clone</h1>
+  <h3>Verbundene Geräte:</h3>
+  <div id="devices"></div>
+
+  <input type="file" id="fileInput" multiple hidden>
+
+  <script>
+    const ws = new WebSocket(`ws://${location.host}`);
+    let myId = null;
+    let selectedTarget = null;
+
+    const devicesDiv = document.getElementById("devices");
+    const fileInput = document.getElementById("fileInput");
+
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data);
+
+      if (data.type === "clients") {
+        devicesDiv.innerHTML = "";
+        data.clients.forEach((id) => {
+          const btn = document.createElement("button");
+          btn.innerText = "Gerät " + id;
+          btn.onclick = () => {
+            selectedTarget = id;
+            fileInput.click();
+          };
+          devicesDiv.appendChild(btn);
+        });
+      }
+
+      if (data.type === "offer") {
+        // Popup fragen ob Datei angenommen wird
+        const accept = confirm("📥 " + data.filename + " von " + data.from + " annehmen?");
+        if (accept) {
+          ws.send(JSON.stringify({ type: "answer", to: data.from, accept: true }));
+        } else {
+          ws.send(JSON.stringify({ type: "answer", to: data.from, accept: false }));
+        }
+      }
+
+      if (data.type === "file") {
+        const blob = new Blob([new Uint8Array(data.data)], { type: data.mimetype });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = data.filename;
+        a.click();
+      }
+    };
+
+    // Datei auswählen und senden
+    fileInput.addEventListener("change", async () => {
+      if (!selectedTarget) return;
+      const files = fileInput.files;
+      for (const file of files) {
+        // Zuerst Offer senden
+        ws.send(JSON.stringify({ 
+          type: "offer", 
+          to: selectedTarget, 
+          filename: file.name, 
+          mimetype: file.type 
+        }));
+
+        // Antwort abwarten
+        const waitAnswer = await new Promise((resolve) => {
+          const handler = (event) => {
+            const data = JSON.parse(event.data);
+            if (data.type === "answer" && data.from === selectedTarget) {
+              ws.removeEventListener("message", handler);
+              resolve(data.accept);
+            }
+          };
+          ws.addEventListener("message", handler);
+        });
+
+        if (!waitAnswer) {
+          alert("❌ Empfänger hat abgelehnt.");
+          continue;
+        }
+
+        // Datei senden
+        const arrayBuffer = await file.arrayBuffer();
+        ws.send(JSON.stringify({
+          type: "file",
+          to: selectedTarget,
+          filename: file.name,
+          mimetype: file.type,
+          data: Array.from(new Uint8Array(arrayBuffer))
+        }));
+      }
+      fileInput.value = "";
+    });
+  </script>
+</body>
+</html>
+
