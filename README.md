@@ -27,8 +27,8 @@ Allows devices on the same network to discover each other and share files direct
 ### Steps
 
 1. Clone the repository
-   git clone [https://github.com/YOUR\_USERNAME/snapdrop-clone.git](https://github.com/YOUR_USERNAME/snapdrop-clone.git)
-   cd snapdrop-clone
+   git clone [https://github.com/YOUR\_USERNAME/snapdrop-clone.git](https://github.com/pyprogrammer79/snapdrop-clone.git)
+   && cd snapdrop-clone
 
 2. Install dependencies
    npm install
