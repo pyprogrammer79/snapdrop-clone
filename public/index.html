@@ -18,38 +18,46 @@
 
   <script>
     const ws = new WebSocket(`ws://${location.host}`);
-    let myId = null;
     let selectedTarget = null;
-
     const devicesDiv = document.getElementById("devices");
     const fileInput = document.getElementById("fileInput");
+
+    // ------------------- GERÄTENAME -------------------
+    let deviceName = localStorage.getItem("deviceName");
+    if (!deviceName) {
+      deviceName = prompt("Wie soll dein Gerät heißen?", "Mein Gerät");
+      if (!deviceName) deviceName = "Unbekanntes Gerät";
+      localStorage.setItem("deviceName", deviceName);
+    }
+
+    ws.onopen = () => {
+      ws.send(JSON.stringify({ type: "register", name: deviceName }));
+    };
 
     ws.onmessage = (event) => {
       const data = JSON.parse(event.data);
 
+      // Geräteliste aktualisieren
       if (data.type === "clients") {
         devicesDiv.innerHTML = "";
-        data.clients.forEach((id) => {
+        for (let client of data.clients) {
           const btn = document.createElement("button");
-          btn.innerText = "Gerät " + id;
+          btn.innerText = client.name;
           btn.onclick = () => {
-            selectedTarget = id;
+            selectedTarget = client.id;
             fileInput.click();
           };
           devicesDiv.appendChild(btn);
-        });
-      }
-
-      if (data.type === "offer") {
-        // Popup fragen ob Datei angenommen wird
-        const accept = confirm("📥 " + data.filename + " von " + data.from + " annehmen?");
-        if (accept) {
-          ws.send(JSON.stringify({ type: "answer", to: data.from, accept: true }));
-        } else {
-          ws.send(JSON.stringify({ type: "answer", to: data.from, accept: false }));
         }
       }
 
+      // Datei-Angebot
+      if (data.type === "offer") {
+        const accept = confirm(`📥 ${data.filename} von ${data.fromName} annehmen?`);
+        ws.send(JSON.stringify({ type: "answer", to: data.from, accept }));
+      }
+
+      // Datei empfangen
       if (data.type === "file") {
         const blob = new Blob([new Uint8Array(data.data)], { type: data.mimetype });
         const a = document.createElement("a");
@@ -64,12 +72,12 @@
       if (!selectedTarget) return;
       const files = fileInput.files;
       for (const file of files) {
-        // Zuerst Offer senden
-        ws.send(JSON.stringify({ 
-          type: "offer", 
-          to: selectedTarget, 
-          filename: file.name, 
-          mimetype: file.type 
+        // Offer senden
+        ws.send(JSON.stringify({
+          type: "offer",
+          to: selectedTarget,
+          filename: file.name,
+          mimetype: file.type
         }));
 
         // Antwort abwarten
@@ -104,4 +112,3 @@
   </script>
 </body>
 </html>
-

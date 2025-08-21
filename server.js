@@ -6,31 +6,30 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
-let clients = new Map(); // clientId -> ws
+let clients = new Map(); // clientId -> { ws, name }
 
-// Statische Dateien ausliefern
 app.use(express.static("public"));
 
 wss.on("connection", (ws) => {
   const clientId = Date.now().toString();
-  clients.set(clientId, ws);
-
-  // allen mitteilen, dass ein neuer da ist
-  broadcastClients();
+  clients.set(clientId, { ws, name: "Unbekannt" });
 
   ws.on("message", (msg) => {
-    let data = {};
-    try {
-      data = JSON.parse(msg);
-    } catch (e) {
-      return;
+    const data = JSON.parse(msg);
+
+    if (data.type === "register") {
+      clients.get(clientId).name = data.name;
+      broadcastClients();
     }
 
-    // Weiterleiten an Zielgerät
-    if (data.type === "offer" || data.type === "file" || data.type === "answer") {
+    if (["offer", "file", "answer"].includes(data.type)) {
       const target = clients.get(data.to);
       if (target) {
-        target.send(JSON.stringify({ ...data, from: clientId }));
+        target.ws.send(JSON.stringify({
+          ...data,
+          from: clientId,
+          fromName: clients.get(clientId).name
+        }));
       }
     }
   });
@@ -42,13 +41,13 @@ wss.on("connection", (ws) => {
 });
 
 function broadcastClients() {
-  const list = Array.from(clients.keys());
-  for (const [id, ws] of clients) {
-    ws.send(JSON.stringify({ type: "clients", clients: list.filter((c) => c !== id) }));
+  const list = Array.from(clients.entries()).map(([id, c]) => ({
+    id,
+    name: c.name
+  }));
+  for (let { ws } of clients.values()) {
+    ws.send(JSON.stringify({ type: "clients", clients: list }));
   }
 }
 
-server.listen(3000, () => {
-  console.log("✅ Server läuft auf http://localhost:3000");
-});
-
+server.listen(3000, () => console.log("Server läuft auf http://localhost:3000"));
