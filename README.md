@@ -27,16 +27,19 @@ Allows devices on the same network to discover each other and share files direct
 ### Steps
 
 1. Clone the repository
+   ```bash
    git clone [https://github.com/pyprogrammer79/snapdrop-clone.git](https://github.com/pyprogrammer79/snapdrop-clone.git)
    && cd snapdrop-clone
-
-2. Install dependencies
+   ```
+3. Install dependencies
+   ```bash
    npm install
-
-3. Run the server
+   ```
+4. Run the server
+   ```bash
    node server.js
-
-4. Open in browser
+   ```
+5. Open in browser
    Go to [http://localhost:3000](http://localhost:3000) on any device connected to your local network.
 
 ---
