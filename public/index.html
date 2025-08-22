@@ -1,12 +1,100 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta charset="UTF-8">
   <title>Snapdrop Clone</title>
   <style>
     body { font-family: Arial, sans-serif; text-align: center; margin: 40px; }
-    #devices { margin: 20px; }
+    #devices {
+      margin: 20px;
+      display: flex;
+      flex-wrap: wrap;       /* mehrere Geräte umbrechen */
+      justify-content: center; /* horizontal zentrieren */
+      gap: 20px;             /* Abstand zwischen Geräten */
+    }
     button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+    .device {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      width: 100px;
+      height: 120px;
+      margin: 15px;
+      border-radius: 20px;
+      background: #222;
+      color: white;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      transition: transform 0.2s;
+      cursor: pointer;
+    }
+
+    .device:hover {
+      transform: scale(1.05);
+    }
+
+    .device-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #4facfe, #00f2fe);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin-bottom: 8px;
+    }
+
+    .device-name {
+      font-size: 14px;
+      font-weight: 600;
+      text-align: center;
+      color: #fff;
+    }
+
+    h1 {
+      font-size: 3.25em;
+    }
+
+    h3 {
+      font-size: 2.25em; 
+    }
+
+    /* Nur für mobile Geräte (max. 768px Breite) */
+    @media (max-width: 768px) {
+      body {
+        font-size: 20px; /* Gesamtschrift größer */
+      }
+
+      h1 {
+        font-size: 1.75em; /* Überschrift etwas größer */
+      }
+
+      h3 {
+        font-size: 1em;
+      }
+
+      .device {
+        width: 80px;   /* Kästchen größer */
+        height: 95px;
+      }
+
+      .device-icon {
+        width: 45px;   /* Icon größer */
+        height: 45px;
+        font-size: 31px;
+      }
+
+      .device-name {
+        font-size: 10px;
+      }
+
+      .device:hover {
+        transform: scale(1.05);
+      }
+    }
+
   </style>
 </head>
 <body>
@@ -41,13 +129,26 @@
       if (data.type === "clients") {
         devicesDiv.innerHTML = "";
         for (let client of data.clients) {
-          const btn = document.createElement("button");
-          btn.innerText = client.name;
-          btn.onclick = () => {
+          if (client.name === deviceName) continue; // eigenes Gerät nicht anzeigen
+
+          const card = document.createElement("div");
+          card.className = "device";
+          card.onclick = () => {
             selectedTarget = client.id;
             fileInput.click();
           };
-          devicesDiv.appendChild(btn);
+
+          const icon = document.createElement("div");
+          icon.className = "device-icon";
+          icon.innerText = "📱"; // du kannst hier auch dynamisch ändern (Laptop, PC, etc.)
+
+          const name = document.createElement("div");
+          name.className = "device-name";
+          name.innerText = client.name;
+
+          card.appendChild(icon);
+          card.appendChild(name);
+          devicesDiv.appendChild(card);
         }
       }
 

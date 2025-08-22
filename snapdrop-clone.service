@@ -1,0 +1,13 @@
+[Unit]
+Description=Snapdrop Clone Service
+After=network.target
+
+[Service]
+WorkingDirectory=/home/<Your User>/snapdrop-clone
+ExecStart=/usr/bin/node server.js
+Restart=always
+User=<Your User>
+Environment=NODE_ENV=production
+
+[Install]
+WantedBy=multi-user.target
