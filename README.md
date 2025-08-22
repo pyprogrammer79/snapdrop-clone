@@ -51,6 +51,43 @@ Allows devices on the same network to discover each other and share files direct
 
 ---
 
+## Run as systemd Service (optional)
+
+You can run Snapdrop Clone as a background service on Linux (e.g. Raspberry Pi):
+
+1. Copy the provided `snapdrop-clone.service` file to systemd:
+
+```bash
+sudo cp snapdrop-clone.service /etc/systemd/system/
+```
+
+2. Edit the service file to set the correct user and path for your system:
+
+```bash
+sudo nano /etc/systemd/system/snapdrop-clone.service
+```
+
+* Change the `User=` line to the Linux user you want the service to run as.
+* Update `WorkingDirectory=` and `ExecStart=` to the full path of your Snapdrop Clone folder and server script.
+
+3. Reload systemd and enable the service:
+
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable snapdrop-clone
+sudo systemctl start snapdrop-clone
+```
+
+4. Check the service status:
+
+```bash
+systemctl status snapdrop-clone
+```
+
+Now Snapdrop Clone will start automatically on boot.
+
+---
+
 ## Notes
 
 * Works best on the same Wi-Fi network.
