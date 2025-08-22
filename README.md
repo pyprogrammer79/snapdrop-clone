@@ -28,8 +28,7 @@ Allows devices on the same network to discover each other and share files direct
 
 1. Clone the repository
    ```bash
-   git clone [https://github.com/pyprogrammer79/snapdrop-clone.git](https://github.com/pyprogrammer79/snapdrop-clone.git)
-   && cd snapdrop-clone
+   git clone https://github.com/pyprogrammer79/snapdrop-clone.git && cd snapdrop-clone
    ```
 3. Install dependencies
    ```bash
